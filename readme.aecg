@@ -1,0 +1,35 @@
+Getting started
+===============
+To access the device, you need to add yourself to the dialout group.
+  $ cat /dev/ttyACM4
+  cat: /dev/ttyACM4: Permission denied
+
+  $ sudo usermod -a -G dialout <username>
+
+Compilation environment
+=======================
+Linux version 3.10.0-693.5.2.el7.x86_64 
+gcc (GCC) 4.8.5 20150623
+Tested in Python 3.6.8
+
+File list
+=========
+SDK/libaecgx86.so     - 32-bit shared library
+SDK/libaecgx64.so     - 64-bit shared library
+SDK/AECG100.h         - SDK library interfaces
+
+Issues
+======
+1. After you plug the AECG device in, ModemManager may open the serial port and
+then you can not normally use the device. 
+  $ stty -F /dev/ttmACM0 -a
+  stty: /dev/ttyACM0: Device or resource busy
+
+It’s easy to fix with a udev rule. You need to write a new udev rule to skip 
+the WhaleTeq devices. Create the file /etc/udev/rules.d/usb-whaleteq.rules and 
+enter the following content, all on a single line:
+
+ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="000a", ENV{ID_MM_DEVICE_IGNORE}="1"
+
+Reload the udev rules with the following command:
+  $sudo udevadm control --reload-rules

@@ -1,0 +1,44 @@
+WhaleTeq AECG100 SDK
+====================
+
+IMPORTANT:
+1. if the R PPG module is connected, the Switch sampling function will be disabled 
+
+Version: 1.0.1.8  - 2020-12-23
+==============================
+1. CHG: remove structure PPG_LED_PULSE_SETTING
+2. CHG: remove WTQReadLEDPulseSetting(), WTQWriteLEDPulseSetting(); which are replaced with ReadLEDPulseGroupSetting() and WriteLEDPulseGroupSetting()
+3. FIX: when play raw ECG data, if the respiration is enabled, the ampltude of the output signal is incorrect
+4. CHG: when the device is connected, reset the output lead to RA
+5. CHG: when the device is connected, reset the input impedance to off
+6. CHG: when the device is connected, reset the respiration to off
+7. NEW: add Raspberry Pi 64bit library
+
+IMPORTANT:
+1. structure PPG_LED_PULSE_SETTING is removed; WTQReadLEDPulseSetting() and WTQWriteLEDPulseSetting() are replaced with ReadLEDPulseGroupSetting() and WriteLEDPulseGroupSetting()
+
+Version: 1.0.1.6  - 2020-09-15
+==============================
+1. FIX: WTQConnect immediately returns with false result
+2. FIX: blocking thread not killed when dll is unloaded
+
+Version: 1.0.1.4  - 2020-09-02
+==============================
+1. Add library for Raspberry 32bit
+
+Version: 1.0.1.3  - 2020-08-20
+==============================
+1. support new PPG module (only R LED); if the new R PPG module is connected, the Switch sampling function will be disabled
+2. ECG noise: support 100Hz/ 120Hz
+3. PPG noise: 100Hz/ 120Hz/ White Noise
+4. fix continuous WTQOutputECG calls results in no waveform generated
+5. fix OutputSignalCallback function prototype is incorrect 
+6. After the waveform outputting is stopped, there are unexpected short signals are generated
+7. fix the play raw delay issue
+8. remove ECG respiration Basic Level 500 ohm
+9. fix: the zero voltage of ECG variable DC is not precisely configured
+
+Version: 1.0.0.1  - 2020-02-15
+==============================
+1. initial version
+
