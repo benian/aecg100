@@ -1,4 +1,4 @@
-  """The structure defined in C type from official SDK.
+"""The structure defined in C type from official SDK.
 
   Further reference document about the fields definition can be found in the
   official AECG100 User Manual page 21, which can be found in the following
