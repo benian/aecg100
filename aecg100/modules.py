@@ -10,7 +10,7 @@ _SamplingErrorCallback = ctypes.CFUNCTYPE(None, ctypes.c_int)
 class _PpgModule:
   """PPG module API implementation."""
 
-  def play_ppg_waveform(self, *waveforms: Tuple[structures.PPGChannel, structures.PPGWaveForm]):
+  def play_ppg_waveform(self, *waveforms: Tuple[structures.PPGChannel, structures.PPGWaveForm]) -> None:
     """Plays PPG waveform."""
     ch_nums = len(waveforms)
     if ch_nums == 1:
@@ -26,6 +26,6 @@ class _PpgModule:
 class _EcgModule:
   """ECG module API implementation."""
 
-  def play_ecg_waveform(self, waveform: structures.ECGWaveform):
+  def play_ecg_waveform(self, waveform: structures.ECGWaveform) -> None:
     """Plays ECG waveform."""
     self.handle.WTQOutputECG(ctypes.pointer(waveform), None)

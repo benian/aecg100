@@ -3,7 +3,7 @@ import logging
 import threading
 import time
 
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from aecg100 import structures
 
@@ -15,7 +15,7 @@ logger = logging.getLogger('aecg100')
 _ConnectedCallback = ctypes.CFUNCTYPE(None, ctypes.c_bool)
 
 
-def _load_cdll(sdk_path: str):
+def _load_cdll(sdk_path: str) -> ctypes.CDLL:
   """Loads SDK dynamic library."""
   handle = ctypes.cdll.LoadLibrary(sdk_path)
   handle.WTQInit.restype = ctypes.c_bool
@@ -41,6 +41,11 @@ class _Aecg100Base:
   """
 
   def __init__(self, sdk_path: str):
+    """Initiates the client instance.
+
+    Args:
+      sdk_path: the fullpath of the sdk dynamic library.
+    """
     self._handle = _load_cdll(sdk_path)
     self._connection_cb = _ConnectedCallback(self._connection_handler)
     self._is_connected = threading.Event()
@@ -132,13 +137,13 @@ class _Aecg100Base:
     }
 
   @property
-  def device_info(self) -> Dict[str, str]:
+  def device_info(self) -> Dict[str, Any]:
     info = structures.ModelInformation()
     self.handle.WTQGetDeviceInformation(ctypes.pointer(info))
     return info.dump()
 
   @property
-  def ppg_device_info(self) -> Dict[str, str]:
+  def ppg_device_info(self) -> Dict[str, Any]:
     info = structures.ModelInformation()
     self.handle.WTQGetPPGDeviceInformation(ctypes.pointer(info))
     return info.dump()
