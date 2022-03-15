@@ -229,7 +229,7 @@ class PPGWaveForm(StructBase):
   ]
 
 
-class FrequencyScan(StructBase):
+class ECGFrequencyScan(StructBase):
   _fields_ = [
       ('amplitude', ctypes.c_double),
       ('frequency_start', ctypes.c_double),
@@ -238,7 +238,7 @@ class FrequencyScan(StructBase):
   ]
 
 
-class FrequencyScan2(StructBase):
+class PPGFrequencyScan(StructBase):
   _fields_ = [
       ('amplitude', ctypes.c_double),
       ('dc', ctypes.c_double),
