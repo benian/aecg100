@@ -22,6 +22,10 @@ class _PpgModule:
     else:
       raise ValueError('the PPG has 3 channels at most')
 
+  def scan_ppg_frequency(self, scan: structures.PPGFrequencyScan):
+    """Scans the PPG frequency."""
+    self.handle.WTQOutputFrequencyScanPPG(structures.PPGChannel.Channel1, ctypes.pointer(scan), None)
+
 
 class _EcgModule:
   """ECG module API implementation."""
@@ -29,3 +33,21 @@ class _EcgModule:
   def play_ecg_waveform(self, waveform: structures.ECGWaveform) -> None:
     """Plays ECG waveform."""
     self.handle.WTQOutputECG(ctypes.pointer(waveform), None)
+
+  def scan_ecg_frequency(self, scan: structures.ECGFrequencyScan):
+    """Scans the ECG frequency."""
+    self.handle.WTQOutputFrequencyScan(ctypes.pointer(scan), None)
+
+
+class _PwttModule:
+  """PWTT module API implementation."""
+
+  def play_ecg_ppg_waveform(
+      self,
+      diff_ptt_peak: int,
+      ecg_waveform: structures.ECGWaveform,
+      ppg_waveform: structures.PPGWaveForm,
+  ) -> None:
+    """Plays ECG and PPG waveform to compose PWTT outputs."""
+    self.handle.WTQOutputECGAndPPG(
+        diff_ptt_peak, ctypes.pointer(ecg_waveform), ctypes.pointer(ppg_waveform), None, None)
