@@ -1,6 +1,6 @@
 import ctypes
 
-from typing import Tuple
+from typing import Sequence, Tuple
 from aecg100 import structures
 
 _SamplingCallback = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_int)
@@ -22,7 +22,33 @@ class _PpgModule:
     else:
       raise ValueError('the PPG has 3 channels at most')
 
-  def scan_ppg_frequency(self, scan: structures.PPGFrequencyScan):
+  def play_ppg_rawdata(self, channel: structures.PPGChannel,
+      sample_rate: int,
+      ac: Sequence[float],
+      dc: Sequence[float],
+      sync_pulse: structures.SyncPulse,
+      loop: bool,
+      callback: structures.OutputSignalCallback = structures.OutputSignalCallback(0)) -> None:
+    """Play PPG Raw data waveform."""
+    if len(ac) != len(dc):
+      raise ValueError('the number of AC and DC data is not equal')
+
+    size = len(ac)
+    SampleArray = ctypes.c_double * size
+    ac_array = SampleArray(*ac)
+    dc_array = SampleArray(*dc)
+
+    raw_data = structures.RawData(
+        sample_rate=sample_rate,
+        size=size,
+        ac=ctypes.addressof(ac_array),
+        dc=ctypes.addressof(dc_array),
+        output_signal_callback=callback)
+
+    self.handle.WTQWaveformPlayerLoop(ctypes.c_bool(loop))
+    self.handle.WTQWaveformPlayerOutputPPG(channel, ctypes.pointer(raw_data))
+
+  def scan_ppg_frequency(self, scan: structures.PPGFrequencyScan) -> None:
     """Scans the PPG frequency."""
     self.handle.WTQOutputFrequencyScanPPG(structures.PPGChannel.Channel1, ctypes.pointer(scan), None)
 
@@ -34,7 +60,33 @@ class _EcgModule:
     """Plays ECG waveform."""
     self.handle.WTQOutputECG(ctypes.pointer(waveform), None)
 
-  def scan_ecg_frequency(self, scan: structures.ECGFrequencyScan):
+  def play_ecg_rawdata(
+      self,
+      sample_rate: int,
+      ac: Sequence[float],
+      dc: Sequence[float],
+      loop: bool,
+      callback: structures.OutputSignalCallback = structures.OutputSignalCallback(0)) -> None:
+    """Play ECG Raw data waveform."""
+    if len(ac) != len(dc):
+      raise ValueError('the number of AC and DC data is not equal')
+
+    size = len(ac)
+    SampleArray = ctypes.c_double * size
+    ac_array = SampleArray(*ac)
+    dc_array = SampleArray(*dc)
+
+    raw_data = structures.RawData(
+        sample_rate=sample_rate,
+        size=size,
+        ac=ctypes.addressof(ac_array),
+        dc=ctypes.addressof(dc_array),
+        output_signal_callback=callback)
+
+    self.handle.WTQWaveformPlayerLoop(ctypes.c_bool(loop))
+    self.handle.WTQWaveformPlayerOutputECG(ctypes.pointer(raw_data))
+
+  def scan_ecg_frequency(self, scan: structures.ECGFrequencyScan) -> None:
     """Scans the ECG frequency."""
     self.handle.WTQOutputFrequencyScan(ctypes.pointer(scan), None)
 

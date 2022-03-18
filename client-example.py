@@ -1,3 +1,4 @@
+import ctypes
 import platform
 import time
 
@@ -203,6 +204,19 @@ def test_output_ecg_frequency_scan(aecg: aecg100.Aecg100Client):
   aecg.stop()
 
 
+def test_ecg_play_raw(aecg: aecg100.Aecg100Client):
+  print('ecg play raw (1Hz, 5mV)...')
+  with open('ecg-1hz-5mv.txt') as fp:
+    data = fp.readlines()
+  sample_rate = int(data[0])
+  ac = [float(d) for d in data[4:]]
+  dc = [0] * len(ac)
+
+  aecg.play_ecg_rawdata(sample_rate, ac, dc, True)
+  time.sleep(10)
+  aecg.stop()
+
+
 def test_output_ppg60bpm(aecg: aecg100.Aecg100Client):
   print('output PPG (60BPM, 12.5mV, SyncOff) ...')
   waveform = aecg100.structures.PPGWaveForm(
@@ -303,6 +317,16 @@ def test_output_ppg_frequency_scan(aecg: aecg100.Aecg100Client):
       })
   aecg.scan_ppg_frequency(scan)
   time.sleep(30)
+  aecg.stop()
+
+
+def test_ppg_play_raw(aecg: aecg100.Aecg100Client):
+  print('ppg play raw (2Hz, rectangle pulse, 100ms)...')
+  ac = [0] * 1000
+  dc = ([3000] * 100 + [0] * 400) * 2
+
+  aecg.play_ppg_rawdata(aecg100.structures.PPGChannel.Channel1, 1000, ac, dc, aecg100.structures.SyncPulse.Off, True)
+  time.sleep(10)
   aecg.stop()
 
 
@@ -441,10 +465,12 @@ if __name__ == '__main__':
       test_output_ecg_waveform_1hz_sine,
       test_output_ecg_waveform_0_5hz_rectangle,
       test_output_ecg_frequency_scan,
+      test_ecg_play_raw,
       test_output_ppg60bpm,
       test_output_ppg60bpm_ac_offset_added,
       test_output_ppg60bpm_noise,
       test_output_ppg_frequency_scan,
+      test_ppg_play_raw,
       test_output_pwtt60bpm,
       test_output_pwtt60bpm_square,
   ]:
