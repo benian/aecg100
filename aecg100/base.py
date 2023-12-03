@@ -1,6 +1,5 @@
 import ctypes
 import logging
-import threading
 import time
 
 from typing import Any, Dict, Optional
@@ -9,16 +8,11 @@ from aecg100 import structures
 
 logger = logging.getLogger('aecg100')
 
-#
-# AECG SDK Callback Types
-#
-_ConnectedCallback = ctypes.CFUNCTYPE(None, ctypes.c_bool)
-
 
 def _load_cdll(sdk_path: str) -> ctypes.CDLL:
   """Loads SDK dynamic library."""
   handle = ctypes.cdll.LoadLibrary(sdk_path)
-  handle.WTQInit.restype = ctypes.c_bool
+  handle.WTQConnect.restype = ctypes.c_bool
   handle.WTQGetDeviceInformation.restype = ctypes.c_bool
   handle.WTQGetHWInformation.restype = ctypes.c_bool
   handle.WTQGetPPGDeviceInformation.restype = ctypes.c_bool
@@ -47,18 +41,11 @@ class _Aecg100Base:
       sdk_path: the fullpath of the sdk dynamic library.
     """
     self._handle = _load_cdll(sdk_path)
-    self._connection_cb = _ConnectedCallback(self._connection_handler)
-    self._is_connected = threading.Event()
-    self._wait_cb = threading.Event()
-
-  def _connection_handler(self, connected: bool) -> None:
-    if connected:
-      self._is_connected.set()
-    self._wait_cb.set()
+    self._is_connected = False
 
   @property
   def is_connected(self):
-    return self._is_connected.is_set()
+    return self._is_connected
 
   @property
   def handle(self):
@@ -66,9 +53,14 @@ class _Aecg100Base:
       raise RuntimeError('device is not connected')
     return self._handle
 
-  def connect(self, timeout: Optional[float] = 15) -> None:
+  def connect(self,
+              port: Optional[int] = -1,
+              timeout: Optional[float] = 15) -> None:
     """Connects to the device.
 
+    Args:
+      port: ttyACM port number, -1 means the port is auto-selected
+      timeout: the number of seconds to connect
     Raises:
       RuntimeError: failed to connect to the device.
     """
@@ -76,17 +68,12 @@ class _Aecg100Base:
       logging.warning('AECG100 is already connected.')
       return
 
-    if not self._handle.WTQInit(self._connection_cb):
+    if not self._handle.WTQConnect(port, timeout * 1000):
       self._handle.WTQFree()
-      raise RuntimeError('Failed to initialize the device')
+      raise RuntimeError('Failed to connect to the device')
 
-    if not self._wait_cb.wait(timeout):
-      raise RuntimeError('AECG device is not response')
+    self._is_connected = True
 
-    if not self.is_connected:
-      raise RuntimeError('Failed connecting to the device')
-
-    self._wait_cb.clear()
     logging.info('AECG100 is connected.')
 
   def disconnect(self) -> None:
@@ -106,7 +93,7 @@ class _Aecg100Base:
     # For reference, I have tested 100 times disconnect() re-connect() and
     # this workaround 100% pass on my local workstation.
     time.sleep(1)
-    self._is_connected.clear()
+    self._is_connected = False
     logging.info('AECG100 is disconnected.')
 
   def stop(self) -> None:
